@@ -1,16 +1,35 @@
-from data import get_data
+import sys
+import argparse
+
+from data import get_data, get_csv_data
 from graph import NetworkGraph
 
 from random import shuffle
 
 
-class FrequenciesExhaustedError(Exception):
-    pass
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--plot", "-p", action='store_true', help="Use graphviz and matplotlib to display a graphical chart"
+)
+parser.add_argument("--node_file", help="nodes.csv file to use")
+parser.add_argument("--edge_file", help="edges.csv file to use")
+parser.add_argument("--frequency_file", help="frequencies.csv file to use")
+args = parser.parse_args()
 
+if args.node_file:
+    nodes = get_csv_data(args.node_file)
+else:
+    nodes = get_data("nodes.csv")
 
-nodes = get_data("nodes.csv")
-edges = get_data("edges.csv")
-frequency_pairs = get_data("frequencies.csv")
+if args.edge_file:
+    edges = get_csv_data(args.edge_file)
+else:
+    edges = get_data("edges.csv")
+
+if args.frequency_file:
+    frequency_pairs = get_csv_data(args.frequency_file)
+else:
+    frequency_pairs = get_data("frequencies.csv")
 
 G = NetworkGraph()
 
@@ -19,6 +38,7 @@ for _id, _name in nodes:
 
 for _from, _to, _weight in edges:
     G.add_edge(_from, _to, weight=_weight)
+
 
 def assign_frequencies():
     unassigned_edges = []
@@ -33,7 +53,9 @@ def assign_frequencies():
                 if frequency:
                     unavailable_frequency_pairs.append(frequency)
 
-        available_frequency_pairs = [f for f in frequency_pairs if f not in unavailable_frequency_pairs]
+        available_frequency_pairs = [
+            f for f in frequency_pairs if f not in unavailable_frequency_pairs
+        ]
 
         shuffle(available_frequency_pairs)
 
@@ -49,7 +71,8 @@ def assign_frequencies():
                 connected_node = next((i for i in edge if i != node))
                 connected_node_name = G.get_node_name(connected_node)
                 print(
-                    f"Ran out of available frequencies on node: {data.get('name')}, specifically connecting it to {connected_node_name}.\nWill assign next-best frequency."
+                    f"Ran out of available frequencies on node: {data.get('name')}, specifically connecting it to {connected_node_name}.\nWill assign next-best frequency.",
+                    file=sys.stderr,
                 )
                 unassigned_edges.append(edge)
                 continue
@@ -57,10 +80,12 @@ def assign_frequencies():
             frequency, colour = available_frequency_pairs.pop()
 
             G.set_frequency_and_colour(edge, frequency, colour)
-    
+
     for edge in unassigned_edges:
         node1, node2 = edge
-        other_connected_edges = [i for i in list(G.edges(node1)) + list(G.edges(node2)) if i != edge]
+        other_connected_edges = [
+            i for i in list(G.edges(node1)) + list(G.edges(node2)) if i != edge
+        ]
         other_connected_edges = G.order_edges_by_weight(other_connected_edges)
         # Get lowest signal frequency already used
         while other_connected_edges:
@@ -69,12 +94,16 @@ def assign_frequencies():
             if frequency:
                 G.set_frequency_and_colour(edge, frequency, colour)
 
+
 assign_frequencies()
 
 # Debugging
-edge_str = "\n".join([f"{u} {v} {d}" for u, v, d in G.edges(data=True)])
-node_str = "\n".join([f"{n} {d}" for n, d in G.nodes(data=True)])
-print(f"Edges: \n{edge_str}")
-print(f"Nodes: \n{node_str}")
+# edge_str = "\n".join([f"{u} {v} {d}" for u, v, d in G.edges(data=True)])
+# node_str = "\n".join([f"{n} {d}" for n, d in G.nodes(data=True)])
+# print(f"Edges: \n{edge_str}")
+# print(f"Nodes: \n{node_str}")
 
 G.print()
+
+if args.plot:
+    G.plot()

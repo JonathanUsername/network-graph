@@ -8,7 +8,7 @@ LINE_WEIGHT_MULTIPLIER = 5
 
 
 class NetworkGraph(Graph):
-    def print(self):
+    def plot(self):
         labels = nx.get_node_attributes(self, "name")
         edge_labels = nx.get_edge_attributes(self, "frequency")
         pos = nx.spring_layout(self)
@@ -20,6 +20,11 @@ class NetworkGraph(Graph):
         nx.draw_networkx_edge_labels(self, pos, edge_labels)
         plt.show()
 
+    def print(self):
+        print("\nEdges:")
+        for _from, _to, data in self.edges(data=True):
+            print(f"{self.nodes[_from].get('name')} to {self.nodes[_to].get('name')}: {data.get('frequency')}")
+
     def colour_edges(self, colourmap):
         edge_data = self.edges(data=True)
         edges = []
@@ -30,8 +35,6 @@ class NetworkGraph(Graph):
             colours.append(d.get("colour", "red"))
             weight = float(d.get("weight", 0)) * LINE_WEIGHT_MULTIPLIER
             weights.append(weight)
-
-        print(weights)
 
         return edges, colours, weights
 
