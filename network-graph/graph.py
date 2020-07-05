@@ -8,10 +8,12 @@ from operator import attrgetter, itemgetter
 class NetworkGraph(Graph):
     def print(self):
         labels = nx.get_node_attributes(self, "name")
+        edge_labels = nx.get_edge_attributes(self, "frequency")
         pos = nx.spring_layout(self)
         edges, colours, weights = self.colour_edges(None) # todo, colourmap
         nx.draw(self, pos, edges=edges, edge_color=colours, width=weights, with_labels=False)
         nx.draw_networkx_labels(self, pos, labels)
+        nx.draw_networkx_edge_labels(self, pos, edge_labels)
         plt.show()
 
     def colour_edges(self, colourmap):
