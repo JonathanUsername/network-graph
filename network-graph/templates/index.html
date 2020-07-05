@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>BBR Network Frequencies Map</title>
+    <style>
+    body {
+        background-color: darkgreen;
+        height: 100%;
+        width: 100%;
+    }
+        #graphDiv {
+            width: 1000px;
+            height: 800px;
+            resize: both;
+            overflow: auto;
+            background-color: white;
+            padding: 10px;
+            margin: 20px auto;
+        }
+
+        #forms {
+            background-color: white;
+            padding: 10px;
+        }
+
+        .form {
+            margin: 10px 0;
+        }
+    </style>
+    <script src="http://d3js.org/d3.v5.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+</head>
+<body>
+    <div id="forms">
+        <div class="form" id="#edgeForm">
+            Upload edges.csv - Visibility
+            <form action="http://localhost:5000/upload_edges" method="POST" enctype="multipart/form-data">
+                <input id="edgesInput" type="file" name="edges" />
+            </form>
+        </div>
+        <div class="form">
+            Upload nodes.csv - Houses
+            <form action="http://localhost:5000/upload_nodes" method="POST" enctype="multipart/form-data">
+                <input id="nodesInput" type="file" name="nodes" />
+            </form>
+        </div>
+        <div class="form">
+            Upload frequencies.csv - Available Frequencies
+            <form action="http://localhost:5000/upload_frequencies" method="POST" enctype="multipart/form-data">
+                <input id="frequenciesInput" type="file" name="frequencies" />
+            </form>
+        </div>
+        <input type="checkbox" name="filterVisible" id="filterVisible" checked="true">
+        <label for="filterVisible">Don't show visibility-only connections (filter for weight > 0.5)</label>
+    </div>
+
+    <div id="graphDiv"></div>
+
+    <script>
+        var filterVisible = true;
+
+        $('#edgesInput').on('change', function () {
+            const file = this.files[0];
+            const fd = new FormData()
+            fd.append('edges', file)
+            $.ajax({
+                url: 'http://localhost:5000/upload_edges',
+                type: 'POST',
+                data: fd,
+                cache: false,
+                contentType: false,
+                processData: false,
+                 success: () => {
+                    location.reload()
+                }
+            })
+        });
+        $('#nodesInput').on('change', function () {
+            const file = this.files[0];
+            const fd = new FormData()
+            fd.append('nodes', file)
+            $.ajax({
+                url: 'http://localhost:5000/upload_nodes',
+                type: 'POST',
+                data: fd,
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: () => {
+                    location.reload()
+                }
+            })
+        });
+        $('#frequenciesInput').on('change', function () {
+            const file = this.files[0];
+            const fd = new FormData()
+            fd.append('frequencies', file)
+            $.ajax({
+                url: 'http://localhost:5000/upload_frequencies',
+                type: 'POST',
+                data: fd,
+                cache: false,
+                contentType: false,
+                processData: false,
+                 success: () => {
+                    location.reload()
+                }
+            })
+        });
+        $("#filterVisible").on("change", e => {
+            filterVisible = e.target.checked;
+            displayGraph()
+        })
+
+        var data = {{ data.chart_data | safe }}
+
+        height = 800;
+        width = 1000;
+
+        color = () => {
+            const scale = d3.scaleOrdinal(d3.schemeCategory10);
+            return d => scale(d.group);
+        }
+
+        drag = simulation => {
+        
+            function dragstarted(d) {
+                if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+            
+            function dragged(d) {
+                d.fx = d3.event.x;
+                d.fy = d3.event.y;
+            }
+            
+            function dragended(d) {
+                if (!d3.event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
+            
+            return d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended);
+        }
+
+        function displayGraph(){
+            d3.select("#graph").remove()
+            var links = data.links.map(d => Object.create(d));
+            const nodes = data.nodes.map(d => Object.create(d));
+
+            if (filterVisible) {
+                links = links.filter(d => parseFloat(d.weight) > 0.5)
+            }
+            console.log(links.length)
+
+            const simulation = d3.forceSimulation(nodes)
+                .force("link", d3.forceLink(links).id(d => d.id))
+                .force("charge", d3.forceManyBody())
+                .force("center", d3.forceCenter(width / 2, height / 2));
+
+            const svg = d3.select("#graphDiv").append("svg")
+                .attr("viewBox", [0, 0, width, height])
+                .attr("id", "graph");
+
+            const link = svg.append("g")
+                .attr("stroke", "#999")
+                .attr("stroke-opacity", 0.6)
+                .selectAll("line")
+                .append("g")
+                .data(links)
+                .join("g")
+                .attr("class", "line-group")
+                .append("line")
+                .attr("stroke-width", d => d.weight * 2)
+                .attr("stroke", d => d.colour);
+
+            const node = svg.append("g")
+                .selectAll(".node")
+                .data(nodes)
+                .join("g")
+                .attr('class', 'node')
+                .call(drag(simulation));
+
+            node.append('circle')
+                .attr("r", 5)
+                .attr("fill", color);
+            
+            node.append("text")
+                .text(function(d) {
+                    return d.id;
+                })
+                .style('fill', '#000')
+                .style('font-size', '12px')
+                .attr('x', 6)
+                .style("text-shadow", "-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff")
+                .attr('y', 3);
+            
+            var label = svg.selectAll(".line-group")
+                .append("text")
+                .attr("class", "link-label")
+                .style("colour", d => d.colour)
+                .style('fill', '#000')
+                .style('font-size', '12px')
+                .attr("dy", ".35em")
+                .attr("text-anchor", "middle")
+                .style("text-shadow", "-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff")
+                .text(d => d.frequency);
+
+            simulation.on("tick", () => {
+                link
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+
+                node
+                    .attr("transform", d => `translate(${d.x}, ${d.y})`);
+                
+                label
+                    .attr("x", d => (d.source.x + d.target.x)/2)
+                    .attr("y", d => (d.source.y+ d.target.y)/2);
+            });
+        }
+
+        displayGraph()
+
+
+    </script>
+</body>
+</html>

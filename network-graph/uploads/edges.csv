@@ -1,0 +1,55 @@
+From,To,Weight
+2 CroesBleddyn,BensonsBush,1.0
+5 Usk Road,FoxAndHounds,1.0
+5 Usk Road,Coppice,1.0
+BathHouseLink,CarregAgWydr,1.0
+BeechGrove,Panderry,1.0
+BensonsBush,ShirenewtonChurch,1.0
+BuckwellStables,BlueBellBarn,1.0
+BuckwellStables,Prospect House,1.0
+BuckwellStables,Gaerllwyd Stables,1.0
+BuckwellStables,Stables2,1.0
+CarregAgWydr,ForgeHouse,1.0
+Cledd-y-TanBarn,Tredean,1.0
+Cledd-y-TanBarn,RampingCat,1.0
+Cledd-y-TanBarn,TremHafren,1.0
+CoachHouse,BlueBellBarn,1.0
+Coppice,CarregAgWydr,1.0
+CrossBleddynFarm,ShirenewtonChurch,1.0
+EarlswoodHall,GreenPool,1.0
+FoxAndHounds,Gaerllwyd Farm,1.0
+ForgeHouse,5 Usk Road,1.0
+Gaerllwyd Farm,Prospect House,1.0
+Gaerllwyd Stables,Gaerllwyd Farm,1.0
+GFServer,Gaerllwyd Farm,1.0
+GreenPool,Mandalay,1.0
+HeathCottage,WestEnd,1.0
+HillTop,ShirenewtonChurch,1.0
+HomeFarm,IttonStud,1.0
+Huntsman,FoxAndHounds,1.0
+IttonStud,StDeniols,1.0
+LatimerBarn,TremHafren,1.0
+LittleBrookFarm,LittleFolly,1.0
+LittleFolly,BlueBellBarn,1.0
+Mandalay,LatimerBarn,1.0
+Panderry,EarlswoodHall,1.0
+PandyFarm,BeechGrove,1.0
+PandyFarm,Panderry,0.5
+Pantycosyn,Pennsylvania,1.0
+Pantycosyn,FoxAndHounds,1.0
+Pennsylvania,Tredean,1.0
+Pennsylvania,Pantycosyn,1.0
+Pennsylvania,Prospect House,1.0
+Pennsylvania,YewTreeHouse,1.0
+PentwynBarn,Pennsylvania,1.0
+Prospect House,Tredean,1.0
+RampingCat,Pennsylvania,1.0
+RampingCat,ShirenewtonChurch,0.5
+RampingCat,Prospect House,0.5
+ShirenewtonChurch,StDeniols,1.0
+ShirenewtonChurch,YewTreeHouse,1.0
+StDeniols,BensonsBush,1.0
+Stables2,Gaerllwyd Stables,1.0
+Tredean,PentwynBarn,1.0
+TremHafren,HillTop,1.0
+WestEnd,LittleFolly,1.0

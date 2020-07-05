@@ -17,3 +17,5 @@ def get_csv_data(filename):
 def get_data(filename):
     return get_csv_data(os.path.join(DIR, "data", filename))
 
+def get_upload_data(filename):
+    return get_csv_data(os.path.join(DIR, "uploads", filename))
