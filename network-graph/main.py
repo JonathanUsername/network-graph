@@ -29,6 +29,7 @@ parser.add_argument("--node_file", help="nodes.csv file to use")
 parser.add_argument("--edge_file", help="edges.csv file to use")
 parser.add_argument("--frequency_file", help="frequencies.csv file to use")
 parser.add_argument("--out_file", "-o", help=".fig file to save")
+parser.add_argument('--json_file', help="json file for d3 export")
 args = parser.parse_args()
 
 if args.node_file:
@@ -181,3 +182,6 @@ if args.plot:
 
 if args.out_file:
     G.save(args.out_file)
+
+if args.json_file:
+    G.json(args.json_file)

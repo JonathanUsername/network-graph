@@ -1,14 +1,16 @@
+import json
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 
 from networkx import Graph
+from networkx.readwrite import json_graph
 from operator import attrgetter, itemgetter
 
 LINE_WEIGHT_MULTIPLIER = 5
 
 # Use the same random each time - for debugging
-np.random.seed(2)
+# np.random.seed(2)
 
 
 class NetworkGraph(Graph):
@@ -37,6 +39,11 @@ class NetworkGraph(Graph):
     def save(self, out_file):
         self.plot()
         plt.savefig(out_file)
+
+    def json(self, out_file):
+        data = json_graph.node_link_data(self)
+        with open(out_file, 'w') as f:
+            f.write(json.dumps(data))
 
     def colour_edges(self, colourmap):
         edge_data = self.edges(data=True)
