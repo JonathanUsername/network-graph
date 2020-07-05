@@ -1,6 +1,8 @@
 # network-graph
 For graphing the BBR network, finding frequencies
 
+![image](https://user-images.githubusercontent.com/7237525/86530109-e2170300-bead-11ea-9e84-b2de6952d98c.png)
+
 Requires python 3
 
 ## Installation
