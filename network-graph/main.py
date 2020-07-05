@@ -38,9 +38,11 @@ for node, data in G.get_nodes_by_priority():
     while len(edges):
         edge = edges.pop()
 
+        # We've already assigned a frequency to this edge
         if G.get_frequency(edge):
             continue
 
+        # Oops, run out of frequencies. NB: This might happen because this algorithm is naive, could re-run optimistically here?
         if not available_frequencies:
             connected_node = next((i for i in edge if i != node))
             connected_node_name = G.get_node_name(connected_node)
