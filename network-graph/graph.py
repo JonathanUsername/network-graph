@@ -22,6 +22,9 @@ class NetworkGraph(Graph):
         )
         nx.draw_networkx_labels(self, pos, labels)
         nx.draw_networkx_edge_labels(self, pos, edge_labels)
+
+    def show(self):
+        self.plot()
         plt.show()
 
     def print(self):
@@ -30,6 +33,10 @@ class NetworkGraph(Graph):
             print(
                 f"{self.nodes[_from].get('name')} to {self.nodes[_to].get('name')}: {data.get('frequency')}"
             )
+
+    def save(self, out_file):
+        self.plot()
+        plt.savefig(out_file)
 
     def colour_edges(self, colourmap):
         edge_data = self.edges(data=True)

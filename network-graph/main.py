@@ -28,6 +28,7 @@ parser.add_argument(
 parser.add_argument("--node_file", help="nodes.csv file to use")
 parser.add_argument("--edge_file", help="edges.csv file to use")
 parser.add_argument("--frequency_file", help="frequencies.csv file to use")
+parser.add_argument("--out_file", "-o", help=".fig file to save")
 args = parser.parse_args()
 
 if args.node_file:
@@ -176,4 +177,7 @@ assign_frequencies()
 G.print()
 
 if args.plot:
-    G.plot()
+    G.show()
+
+if args.out_file:
+    G.save(args.out_file)
