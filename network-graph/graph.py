@@ -1,10 +1,14 @@
 import matplotlib.pyplot as plt
 import networkx as nx
+import numpy as np
 
 from networkx import Graph
 from operator import attrgetter, itemgetter
 
 LINE_WEIGHT_MULTIPLIER = 5
+
+# Use the same random each time - for debugging
+np.random.seed(2)
 
 
 class NetworkGraph(Graph):
@@ -23,7 +27,9 @@ class NetworkGraph(Graph):
     def print(self):
         print("\nEdges:")
         for _from, _to, data in self.edges(data=True):
-            print(f"{self.nodes[_from].get('name')} to {self.nodes[_to].get('name')}: {data.get('frequency')}")
+            print(
+                f"{self.nodes[_from].get('name')} to {self.nodes[_to].get('name')}: {data.get('frequency')}"
+            )
 
     def colour_edges(self, colourmap):
         edge_data = self.edges(data=True)
@@ -71,5 +77,9 @@ class NetworkGraph(Graph):
         return n.get("name")
 
     def order_edges_by_weight(self, edges):
-        ordered = sorted(self.edges(edges, data=True), key=lambda n: n[1]["weight"])
+        edges_with_data = [(edge, self.edges[edge]) for edge in edges]
+        ordered = sorted(edges_with_data, key=lambda n: n[1]["weight"])
         return [i for i, _ in ordered]
+
+    def edges_equal(self, edge1, edge2):
+        return edge1 == edge2 or not set(edge1) - set(edge2)

@@ -3,6 +3,7 @@ import csv
 
 DIR = os.path.dirname(os.path.realpath(__file__))
 
+
 def get_csv_data(filename):
     lines = []
     with open(filename) as f:
@@ -12,7 +13,7 @@ def get_csv_data(filename):
             lines.append(row)
     return lines
 
-def get_data(filename):
-    return get_csv_data(os.path.join(DIR, 'data', filename))
 
+def get_data(filename):
+    return get_csv_data(os.path.join(DIR, "data", filename))
 

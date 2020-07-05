@@ -7,9 +7,23 @@ from graph import NetworkGraph
 from random import shuffle
 
 
+class AvailableFrequenciesExhausted(Exception):
+    def __init__(self, edge):
+        self.edge = edge
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--plot", "-p", action='store_true', help="Use graphviz and matplotlib to display a graphical chart"
+    "--plot",
+    "-p",
+    action="store_true",
+    help="Use graphviz and matplotlib to display a graphical chart",
+)
+parser.add_argument(
+    "--verbose",
+    "-v",
+    action="store_true",
+    help="Print debugging info and decision making",
 )
 parser.add_argument("--node_file", help="nodes.csv file to use")
 parser.add_argument("--edge_file", help="edges.csv file to use")
@@ -40,59 +54,115 @@ for _from, _to, _weight in edges:
     G.add_edge(_from, _to, weight=_weight)
 
 
+def log_debug(msg):
+    if args.verbose:
+        print(msg, file=sys.stderr)
+
+
+def assign_frequency_to_edge(edge, available_frequency_pairs):
+    # We've already assigned a frequency to this edge
+    if G.get_frequency(edge):
+        return
+
+    # Oops, run out of frequencies.
+    if not available_frequency_pairs:
+        raise AvailableFrequenciesExhausted(edge)
+
+    frequency, colour = available_frequency_pairs.pop()
+    G.set_frequency_and_colour(edge, frequency, colour)
+
+
+def get_unavailable_frequencies_for_node(node):
+    unavailable_frequency_pairs = []
+    for edge in G.edges(node):
+        frequency_and_colour = G.get_frequency_and_colour(edge)
+        if frequency_and_colour:
+            unavailable_frequency_pairs.append(frequency_and_colour)
+    return unavailable_frequency_pairs
+
+
+# What frequencies are not used by any neighbours of this node
+def get_available_frequency_pairs_for_node(node):
+    unavailable_frequency_pairs = []
+    for neighbour in G.neighbors(node):
+        unavailable_frequency_pairs += get_unavailable_frequencies_for_node(neighbour)
+
+    available_frequency_pairs = [
+        f for f in frequency_pairs if f not in unavailable_frequency_pairs
+    ]
+    return available_frequency_pairs
+
+
+# What frequencies are not used by either node connected to this edge
+def get_available_frequency_pairs_for_edge(edge):
+    node1, node2 = edge
+    unavailable_frequency_pairs = get_unavailable_frequencies_for_node(
+        node1
+    ) + get_unavailable_frequencies_for_node(node2)
+
+    available_frequency_pairs = [
+        f for f in frequency_pairs if f not in unavailable_frequency_pairs
+    ]
+    return available_frequency_pairs
+
+
 def assign_frequencies():
     unassigned_edges = []
 
     for node, data in G.get_nodes_by_priority():
         edges = [i for i in G.edges(node)]
 
-        unavailable_frequency_pairs = []
-        for neighbour in G.neighbors(node):
-            for edge in G.edges(neighbour):
-                frequency = G.get_frequency_and_colour(edge)
-                if frequency:
-                    unavailable_frequency_pairs.append(frequency)
-
-        available_frequency_pairs = [
-            f for f in frequency_pairs if f not in unavailable_frequency_pairs
-        ]
+        available_frequency_pairs = get_available_frequency_pairs_for_node(node)
 
         shuffle(available_frequency_pairs)
 
-        while edges:
-            edge = edges.pop()
-
-            # We've already assigned a frequency to this edge
-            if G.get_frequency(edge):
-                continue
-
-            # Oops, run out of frequencies.
-            if not available_frequency_pairs:
-                connected_node = next((i for i in edge if i != node))
-                connected_node_name = G.get_node_name(connected_node)
-                print(
-                    f"Ran out of available frequencies on node: {data.get('name')}, specifically connecting it to {connected_node_name}.\nWill assign next-best frequency.",
-                    file=sys.stderr,
-                )
-                unassigned_edges.append(edge)
-                continue
-
-            frequency, colour = available_frequency_pairs.pop()
-
-            G.set_frequency_and_colour(edge, frequency, colour)
+        for edge in edges:
+            try:
+                assign_frequency_to_edge(edge, available_frequency_pairs)
+            except AvailableFrequenciesExhausted as failed:
+                unassigned_edges.append(failed.edge)
 
     for edge in unassigned_edges:
+        # May have been assigned the other direction
+        if G.get_frequency_and_colour(edge):
+            continue
+
+        # Try assigning any that aren't used by the connected nodes
+        try:
+            available_frequency_pairs = get_available_frequency_pairs_for_edge(edge)
+            assign_frequency_to_edge(edge, available_frequency_pairs)
+            continue
+        except AvailableFrequenciesExhausted:
+            pass
+
+        #  Get the next best frequency - that with lowest weight
         node1, node2 = edge
         other_connected_edges = [
             i for i in list(G.edges(node1)) + list(G.edges(node2)) if i != edge
         ]
         other_connected_edges = G.order_edges_by_weight(other_connected_edges)
+
+        log_debug(
+            f"Deciding for connection between {G.get_node_name(node1)} and {G.get_node_name(node2)}"
+        )
+        log_debug(f"Available:")
+        for other_edge in other_connected_edges:
+            u, v = other_edge
+            name1 = G.nodes[u]["name"]
+            name2 = G.nodes[v]["name"]
+            weight = G.edges[other_edge]["weight"]
+            log_debug(f"{name1} to {name2} = {weight}")
+
         # Get lowest signal frequency already used
-        while other_connected_edges:
-            other_edge = other_connected_edges.pop()
-            frequency, colour = G.get_frequency_and_colour(other_edge)
-            if frequency:
-                G.set_frequency_and_colour(edge, frequency, colour)
+        for other_edge in other_connected_edges:
+            if G.edges_equal(edge, other_edge):
+                continue
+            G.edges[other_edge]["weight"]
+            frequency_and_colour = G.get_frequency_and_colour(other_edge)
+            if frequency_and_colour:
+                G.set_frequency_and_colour(edge, *frequency_and_colour)
+                log_debug(f"Chose {G.edges[other_edge]['weight']}")
+                break
 
 
 assign_frequencies()
