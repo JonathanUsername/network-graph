@@ -47,7 +47,7 @@ for node, data in G.get_nodes_by_priority():
             connected_node = next((i for i in edge if i != node))
             connected_node_name = G.get_node_name(connected_node)
             raise FrequenciesExhaustedError(
-                f"Ran out of available frequencies on node: {data.get('name')}, specifically connecting it to {connected_node_name}"
+                f"Ran out of available frequencies on node: {data.get('name')}, specifically connecting it to {connected_node_name}. \nConsider re-running if you're optimistic."
             )
 
         frequency = available_frequencies.pop()
